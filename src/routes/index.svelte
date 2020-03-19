@@ -1,17 +1,59 @@
 <script context="module">
-  import { firestore } from './../firebase';
+  import firebaseConfig from '../firebaseConfig';
+  import { FirebaseApp, Collection } from 'sveltefire';
+
+  async function firebase() {
+    if (process.browser) {
+        return firebase;
+    } else {
+        console.log("hello theree");
+        const firebase = await import('firebase');
+        if (firebase.apps.length == 0) {
+            let app = firebase.initializeApp(firebaseConfig);
+            return app;
+        }
+        else {
+            return firebase.apps[0];
+        }
+    }
+  }
+
   export async function preload(page, session) {
-    let db = await firestore();
-    let fbList = await db.collection('posts').get();
-    return { list: fbList.docs };
+    const globalFirebase = await firebase;
+    console.log("im here!");
+    await import ('firebase/firestore');
+    console.log('im also here!');
+    console.log("im also also here!!");
+    
+    if (globalFirebase) {
+      console.log('YESSS');
+    }
+
+    console.log("globalFirebase", globalFirebase);
+    globalFirebase.initializeApp(firebaseConfig);
+    console.log(globalFirebase);
   }
 </script>
 
 <script>
-  export let list = [];
+  import { onMount } from 'svelte';
+
+  let globalFirebase;
+
+  onMount(() => {
+    globalFirebase = firebase;
+		if (!firebase.apps.length) {
+			firebase.initializeApp(firebaseConfig);
+		}
+	});
 </script>
 
-{#each list as listItem}
-  {listItem.data().title}
-  <br />
-{:else}No data :({/each}
+{#if globalFirebase}
+  <FirebaseApp firebase={globalFirebase}>
+    <Collection path={'posts'} let:data={posts}>
+      {#each posts as post}
+        {post.title}
+      {/each}
+    </Collection>
+  </FirebaseApp>
+{/if}
