@@ -2,7 +2,7 @@
   import { firestore } from './../firebase';
   export async function preload(page, session) {
     let db = await firestore();
-    let fbList = await db.collection('list').get();
+    let fbList = await db.collection('posts').get();
     return { list: fbList.docs };
   }
 </script>
@@ -12,6 +12,6 @@
 </script>
 
 {#each list as listItem}
-  {listItem.data().name}
+  {listItem.data().title}
   <br />
 {:else}No data :({/each}
