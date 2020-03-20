@@ -1,17 +1,29 @@
 <script context="module">
-  import { firestore } from './../firebase';
+  // import { firebase } from './../firebase';
+
   export async function preload(page, session) {
-    let db = await firestore();
-    let fbList = await db.collection('posts').get();
-    return { list: fbList.docs };
+    let firebased = await firebase();
+    return { firebased };
   }
 </script>
 
 <script>
-  export let list = [];
+  import { firebase } from "./../firebase";
+  import { FirebaseApp, Collection } from 'sveltefire';
+
+  export let firebased = null;
 </script>
 
-{#each list as listItem}
-  {listItem.data().title}
-  <br />
-{:else}No data :({/each}
+{#await firebase()}
+<p>waiting...</p>
+{:then firebased}
+<FirebaseApp firebase={firebased}>
+  <Collection path={'posts'} let:data={posts}>
+    {#each posts as post}
+      {post.title}
+    {/each}
+  </Collection>
+</FirebaseApp>
+{:catch error}
+	<p style="color: red">{error.message}</p>
+{/await}
